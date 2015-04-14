@@ -24,6 +24,11 @@ import android.graphics.Color;
  * A simple series renderer.
  */
 public class SimpleSeriesRenderer implements Serializable {
+  
+  /* Kevin added for shadow effect of bar chart */
+  private int mShadowColor = Color.TRANSPARENT;
+  private int mShadowOffset = 0;
+  
   /** The series color. */
   private int mColor = Color.BLUE;
   /** The stroke style. */
@@ -47,6 +52,22 @@ public class SimpleSeriesRenderer implements Serializable {
   /** The chart values format. */
   private NumberFormat mChartValuesFormat;
 
+  public int getShadowColor() {
+    return mShadowColor;
+  }
+  
+  public void setShadowColor(int color) {
+    mShadowColor = color;
+  }
+  
+  public int getShadowOffset() {
+    return mShadowOffset;
+  }
+  
+  public void setShadlowOffset(int offset) {
+    mShadowOffset = offset;
+  }
+  
   /**
    * Returns the series color.
    * 

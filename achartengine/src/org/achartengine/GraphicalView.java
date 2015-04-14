@@ -37,8 +37,10 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Message;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
 
 /**
  * The view that encapsulates the graphical chart.
@@ -81,6 +83,60 @@ public class GraphicalView extends View {
   /** If the graphical view is drawn. */
   private boolean mDrawn;
 
+  /** --- Kevin added for animation ---*/
+  
+  final static int MSG_ANIMATION_REPAINT = 1;
+  final static int MAX_ANIMATION_DURATION = 5000; // 5 seconds
+  
+  private int mAnimDuration = 3000;
+  private int mAnimFrameCount = 0;
+  private int mAnimFrameCurrentIdx = 0;
+  private long mAnimStartTime = 0;
+  private long mAnamNextDealy = 0;
+  private boolean mAnimEnabled = false;
+  
+  
+  public void startChartAnimation() {
+    if(mAnimFrameCount > 0) {
+      mAnimStartTime = System.currentTimeMillis();
+      mAnimEnabled = true;
+      mDrawn = false;
+      updateAnimParas();
+    }
+  }
+  
+  public void  setAnimationPara(int duration, int count) {
+    mAnimDuration = duration;    
+    mAnimFrameCount = count;   
+  }
+  
+  
+  void updateAnimParas() {
+    long now = System.currentTimeMillis();
+    // increment frame index
+    mAnimFrameCurrentIdx++;
+    if(mAnimFrameCurrentIdx <= mAnimFrameCount && mAnimFrameCount != 0) {
+      // calculate next delay and set to global variable
+      long delay = 0;
+      if(now - mAnimStartTime >= mAnimDuration) {
+        // TODO calculate delay here
+      }
+      
+      float f = (float)mAnimFrameCurrentIdx/(float)mAnimFrameCount;
+      // calculate the progress by interpolator function
+      // update chart's progress
+      AccelerateInterpolator decl = new AccelerateInterpolator(2f);
+      
+      mChart.setAnimProgress(decl.getInterpolation(f));
+      mAnamNextDealy = delay;
+      repaint();
+    }
+    if(mAnimFrameCurrentIdx > mAnimFrameCount) {
+      mAnimEnabled = false;
+      mDrawn = true;
+    }        
+  }
+  
   /**
    * Creates a new graphical view.
    * 
@@ -90,7 +146,21 @@ public class GraphicalView extends View {
   public GraphicalView(Context context, AbstractChart chart) {
     super(context);
     mChart = chart;
-    mHandler = new Handler();
+    mHandler = new Handler() {
+      @Override
+      public void handleMessage(Message msg) {
+        switch(msg.what) {
+          case MSG_ANIMATION_REPAINT:
+            // update global variables
+            updateAnimParas();              
+            break;
+            
+          default:
+            
+            break;
+        }
+      }
+    };
     if (mChart instanceof XYChart) {
       mRenderer = ((XYChart) mChart).getRenderer();
     } else {
@@ -190,7 +260,13 @@ public class GraphicalView extends View {
       canvas.drawBitmap(zoomOutImage, left + width - zoomSize * 1.75f, buttonY, null);
       canvas.drawBitmap(fitZoomImage, left + width - zoomSize * 0.75f, buttonY, null);
     }
-    mDrawn = true;
+
+    // Kevin added, only set mDrawn when reach the last frame
+    if (!mAnimEnabled)
+      mDrawn = true;
+    else {
+      mHandler.sendEmptyMessageDelayed(MSG_ANIMATION_REPAINT, mAnamNextDealy);
+    }
   }
 
   /**

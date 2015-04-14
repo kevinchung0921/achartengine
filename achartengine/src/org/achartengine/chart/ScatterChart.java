@@ -15,6 +15,7 @@
  */
 package org.achartengine.chart;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.achartengine.model.XYMultipleSeriesDataset;
@@ -61,6 +62,23 @@ public class ScatterChart extends XYChart {
     size = renderer.getPointSize();
   }
 
+  List<Float> getAnimPoints(List<Float> p) {
+    
+    List<Float> l = new ArrayList<Float>();
+    float progressX = p.get(p.size()-2)*getAnimProgress();
+    for(int i=0;i<p.size()/2;i++) {
+      float x = p.get(i*2);
+      float y = p.get(i*2+1);
+      if(x < progressX) {
+        l.add(x);
+        l.add(y);
+      } else {
+        break;
+      }
+    }
+    return l;
+  }
+  
   /**
    * The graphical representation of a series.
    * 
@@ -82,6 +100,10 @@ public class ScatterChart extends XYChart {
     } else {
       paint.setStrokeWidth(renderer.getPointStrokeWidth());
       paint.setStyle(Style.STROKE);
+    }
+    // kevin added
+    if(getAnimProgress() < 1.0f) {
+      points = getAnimPoints(points);
     }
     int length = points.size();
     switch (renderer.getPointStyle()) {

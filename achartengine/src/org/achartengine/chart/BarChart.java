@@ -23,6 +23,7 @@ import org.achartengine.renderer.SimpleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
+import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -35,6 +36,15 @@ import android.graphics.drawable.GradientDrawable.Orientation;
  * The bar chart rendering class.
  */
 public class BarChart extends XYChart {
+  
+  /** Add support of shadow blurry */
+  private int mBlurryLevel = 6;
+  
+  
+  /** Add support of round rectangle */
+  private float mRadiusX = 0;
+  private float mRadiusY = 0;
+  
   /** The constant to identify this chart type. */
   public static final String TYPE = "Bar";
   /** The legend shape width. */
@@ -91,6 +101,15 @@ public class BarChart extends XYChart {
     }
     return ret;
   }
+  
+  public void setBlurryLevel(int val) {
+    mBlurryLevel = val;
+  }
+  
+  public void setBarRadius(float x, float y) {
+    mRadiusX = x;
+    mRadiusY = y;
+  }
 
   /**
    * The graphical representation of a series.
@@ -121,6 +140,16 @@ public class BarChart extends XYChart {
         points.set(i + 1, y);
         drawBar(canvas, x, lastY, x, y, halfDiffX, seriesNr, seriesIndex, paint);
       } else {
+        if(getAnimProgress() < 1.0f) {
+          if(y < yAxisValue) {
+            float f = yAxisValue-yAxisValue*getAnimProgress();
+            if(y < f)
+              y = f;
+          } else if(y > yAxisValue) {
+            y = yAxisValue-((yAxisValue-y)*getAnimProgress());
+          }
+          //y = yAxisValue-((yAxisValue-y)*getAnimProgress());        
+        }
         drawBar(canvas, x, yAxisValue, x, y, halfDiffX, seriesNr, seriesIndex, paint);
       }
     }
@@ -193,16 +222,20 @@ public class BarChart extends XYChart {
 
       if (yMin < minY) {
         paint.setColor(gradientMinColor);
-        canvas.drawRect(Math.round(xMin), Math.round(yMin), Math.round(xMax),
-            Math.round(gradientMinY), paint);
+        //canvas.drawRect(Math.round(xMin), Math.round(yMin), Math.round(xMax),
+            //Math.round(gradientMinY), paint);
+        canvas.drawRoundRect(new RectF(Math.round(xMin), Math.round(yMin), Math.round(xMax),
+            Math.round(gradientMinY)), mRadiusX, mRadiusY, paint);
       } else {
         gradientStopColor = getGradientPartialColor(gradientMinColor, gradientMaxColor,
             (maxY - gradientMinY) / (maxY - minY));
       }
       if (yMax > maxY) {
         paint.setColor(gradientMaxColor);
-        canvas.drawRect(Math.round(xMin), Math.round(gradientMaxY), Math.round(xMax),
-            Math.round(yMax), paint);
+        //canvas.drawRect(Math.round(xMin), Math.round(gradientMaxY), Math.round(xMax),
+            //Math.round(yMax), paint);
+        canvas.drawRoundRect(new RectF(Math.round(xMin), Math.round(gradientMaxY), Math.round(xMax),
+            Math.round(yMax)), mRadiusX, mRadiusY, paint);
       } else {
         gradientStartColor = getGradientPartialColor(gradientMaxColor, gradientMinColor,
             (gradientMaxY - minY) / (maxY - minY));
@@ -211,7 +244,26 @@ public class BarChart extends XYChart {
           gradientStartColor, gradientStopColor });
       gradient.setBounds(Math.round(xMin), Math.round(gradientMinY), Math.round(xMax),
           Math.round(gradientMaxY));
-      gradient.draw(canvas);
+//      float f[]={8f,8f,8f,8f, 0f, 0f, 0f, 0f};
+//      gradient.setCornerRadii(f);
+      if(renderer.isHighlighted()) {
+       
+      }
+      
+      // only draw background at last to improve efficient
+      if(getAnimProgress()>=1.0f) {
+        int off = renderer.getShadowOffset();
+        Paint p = new Paint(paint);
+        p.setColor(renderer.getShadowColor());      
+  //      canvas
+  //      .drawRect(Math.round(xMin)+off, Math.round(yMin)+off, Math.round(xMax)+off, Math.round(yMax)+off, p);
+        
+        Paint np = new Paint(p);
+        np.setMaskFilter(new BlurMaskFilter(mBlurryLevel, BlurMaskFilter.Blur.NORMAL));
+        canvas
+          .drawRoundRect(new RectF(Math.round(xMin)+off, Math.round(yMin), Math.round(xMax)+off, Math.round(yMax)+off), mRadiusX, mRadiusY, np);
+        gradient.draw(canvas);
+      }
     } else {
       if (Math.abs(yMin - yMax) < 1) {
         if (yMin < yMax) {
@@ -220,8 +272,27 @@ public class BarChart extends XYChart {
           yMax = yMin - 1;
         }
       }
+      if(renderer.isHighlighted()) {
+        
+      }
+      int off = renderer.getShadowOffset();
+      Paint p = new Paint(paint);
+      p.setColor(renderer.getShadowColor());
+//      canvas
+//      .drawRect(Math.round(xMin)+off, Math.round(yMin)+off, Math.round(xMax)+off, Math.round(yMax)+off, p);
+//      canvas
+//          .drawRect(Math.round(xMin), Math.round(yMin), Math.round(xMax), Math.round(yMax), paint);
+      if(getAnimProgress() >= 1.0f) {
+        Paint np = new Paint(p);
+        np.setMaskFilter(new BlurMaskFilter(mBlurryLevel, BlurMaskFilter.Blur.NORMAL));
+        canvas
+          .drawRoundRect(new RectF(Math.round(xMin)+off, Math.round(yMin)+off, Math.round(xMax)+off, Math.round(yMax)+off), mRadiusX, mRadiusY, np);
+      } else {
+        canvas
+        .drawRoundRect(new RectF(Math.round(xMin)+off, Math.round(yMin)+off, Math.round(xMax)+off, Math.round(yMax)+off), mRadiusX, mRadiusY, p);
+      }
       canvas
-          .drawRect(Math.round(xMin), Math.round(yMin), Math.round(xMax), Math.round(yMax), paint);
+        .drawRoundRect(new RectF(Math.round(xMin), Math.round(yMin), Math.round(xMax), Math.round(yMax)), mRadiusX, mRadiusY, paint);
     }
   }
 
@@ -292,7 +363,8 @@ public class BarChart extends XYChart {
   public void drawLegendShape(Canvas canvas, SimpleSeriesRenderer renderer, float x, float y,
       int seriesIndex, Paint paint) {
     float halfShapeWidth = SHAPE_WIDTH / 2;
-    canvas.drawRect(x, y - halfShapeWidth, x + SHAPE_WIDTH, y + halfShapeWidth, paint);
+    //canvas.drawRect(x, y - halfShapeWidth, x + SHAPE_WIDTH, y + halfShapeWidth, paint);
+    canvas.drawRoundRect(new RectF(x, y - halfShapeWidth, x + SHAPE_WIDTH, y + halfShapeWidth), mRadiusX, mRadiusY, paint);
   }
 
   /**

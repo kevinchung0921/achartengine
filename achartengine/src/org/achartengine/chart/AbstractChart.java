@@ -35,11 +35,25 @@ import android.graphics.Paint.Style;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.GradientDrawable;
 
 /**
  * An abstract class to be implemented by the chart rendering classes.
  */
-public abstract class AbstractChart implements Serializable {
+public abstract class AbstractChart implements Serializable { 
+  
+  /**
+   * Kevin added for animation */
+  private float mAnimProgress = 1.0f;
+  
+  public void setAnimProgress(float progress) {
+    mAnimProgress = progress;
+  }
+  
+  public float getAnimProgress() {
+    return mAnimProgress;
+  }
+  
   /**
    * The graphical representation of the chart.
    * 

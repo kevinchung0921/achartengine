@@ -105,7 +105,9 @@ public class PieChart extends RoundChart {
     RectF oval = new RectF(mCenterX - radius, mCenterY - radius, mCenterX + radius, mCenterY
         + radius);
     List<RectF> prevLabelsBounds = new ArrayList<RectF>();
-
+    // kevin added 
+    boolean stop = false;
+    
     for (int i = 0; i < sLength; i++) {
       SimpleSeriesRenderer seriesRenderer = mRenderer.getSeriesRendererAt(i);
       if (seriesRenderer.isGradientEnabled()) {
@@ -127,6 +129,13 @@ public class PieChart extends RoundChart {
         canvas.drawArc(oval, currentAngle, angle, true, paint);
         oval.offset(-translateX, -translateY);
       } else {
+        if(getAnimProgress()<1.0f) {
+          float stopAngle = 360*getAnimProgress();
+          if((currentAngle+angle) >= stopAngle) {
+            angle = stopAngle - currentAngle;
+            stop = true;
+          }
+        } 
         canvas.drawArc(oval, currentAngle, angle, true, paint);
       }
       paint.setColor(seriesRenderer.getColor());
@@ -147,6 +156,8 @@ public class PieChart extends RoundChart {
         mPieMapper.addPieSegment(i, value, currentAngle, angle);
       }
       currentAngle += angle;
+      if(stop)
+        break;
     }
     prevLabelsBounds.clear();
     drawLegend(canvas, mRenderer, titles, left, right, y, width, height, legendSize, paint, false);

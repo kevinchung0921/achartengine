@@ -66,6 +66,25 @@ public class LineChart extends XYChart {
     pointsChart = new ScatterChart(dataset, renderer);
   }
 
+  List<Float> getAnimPoints(List<Float> p, float yAxisValue) {
+    
+    List<Float> l = new ArrayList<Float>();
+    float progressX = p.get(p.size()-2)*getAnimProgress();
+    for(int i=0;i<p.size()/2;i++) {
+      float x = p.get(i*2);
+      float y = p.get(i*2+1);
+      if(x < progressX) {
+        l.add(x);
+        l.add(y);
+      } else {
+        l.add(progressX);
+        l.add(y);
+        break;
+      }
+    }
+    return l;
+  }
+  
   /**
    * The graphical representation of a series.
    * 
@@ -83,7 +102,10 @@ public class LineChart extends XYChart {
     float lineWidth = paint.getStrokeWidth();
     paint.setStrokeWidth(renderer.getLineWidth());
     final FillOutsideLine[] fillOutsideLine = renderer.getFillOutsideLine();
-
+    // kevin added, calculate new points for animation
+    if(getAnimProgress() < 1.0f)
+      points = getAnimPoints(points, yAxisValue); 
+    pointsChart.setAnimProgress(getAnimProgress());
     for (FillOutsideLine fill : fillOutsideLine) {
       if (fill.getType() != FillOutsideLine.Type.NONE) {
         paint.setColor(fill.getColor());

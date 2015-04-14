@@ -43,6 +43,7 @@ import android.graphics.Paint.Align;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Join;
 import android.graphics.Paint.Style;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.PathEffect;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -125,8 +126,16 @@ public abstract class XYChart extends AbstractChart {
       mScreenR = new Rect();
     }
     mScreenR.set(left, top, right, bottom);
-    drawBackground(mRenderer, canvas, x, y, width, height, paint, false, DefaultRenderer.NO_COLOR);
-
+    // kevin modify
+    if(mRenderer.getEnableBgGradient()) {
+      GradientDrawable gradient = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[] {
+          mRenderer.getBgGradientStartColor(), mRenderer.getBgGradientEndClor() });
+      gradient.setBounds(x,top,width,bottom);
+      gradient.draw(canvas); 
+    } else {
+      drawBackground(mRenderer, canvas, x, y, width, height, paint, false, DefaultRenderer.NO_COLOR);
+    }
+  
     if (paint.getTypeface() == null
         || (mRenderer.getTextTypeface() != null && paint.getTypeface().equals(
             mRenderer.getTextTypeface()))

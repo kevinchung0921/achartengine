@@ -26,6 +26,32 @@ import android.graphics.Typeface;
  * An abstract renderer to be extended by the multiple series classes.
  */
 public class DefaultRenderer implements Serializable {
+  
+  boolean mBgUseGradient = false;
+  int mBgGradientColorStart = 0;
+  int mBgGradientColorEnd = 0;
+  
+  public void setEnableBgGradient(boolean enable) {
+    mBgUseGradient = enable;
+  }
+  
+  public boolean getEnableBgGradient() {
+    return mBgUseGradient;
+  }
+  
+  public void setBgGradientColor(int start, int end) {
+    mBgGradientColorStart = start;
+    mBgGradientColorEnd = end;
+  }
+  
+  public int getBgGradientStartColor() {
+    return mBgGradientColorStart;
+  }
+  
+  public int getBgGradientEndClor() {
+    return mBgGradientColorEnd;
+  }
+  
   /** The chart title. */
   private String mChartTitle = "";
   /** The chart title text size. */
